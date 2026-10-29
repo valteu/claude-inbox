@@ -1,8 +1,4 @@
-# claude-inbox
-
-Adds a new Claude account to the curation fleet:
-
-This is how to contribute a claude plan to data construction:
+This is how to contribute a claude plan for data construction:
 1. Open a browser and sign into a claude account with a max subscription
 2. Run this command:
 ```sh
