@@ -1,16 +1,11 @@
 # claude-inbox
 
-Adds a new Claude account to the curation fleet, from any computer and any GitHub account.
+Adds a new Claude account to the curation fleet, from any computer:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/valteu/claude-inbox/main/add-account.sh)
 ```
 
-Needs Claude Code (`claude`), `openssl`, and the GitHub CLI logged in (`gh auth login`). The script asks you to sign in with the new Claude account, encrypts its token with `cluster.pub.pem`, and sends it:
+Needs only Claude Code (`claude`), `openssl` and `curl`: no GitHub account, no cluster access. Sign in with the new Claude account when the browser opens and paste the token it prints; the answer (`ok: added as account N with 4 workers`) appears in the terminal within about 10 minutes.
 
-- with push access to this repo: as a file in `inbox/`; the result appears in `results/`;
-- otherwise: through a fork and a pull request; the cluster comments the result and closes the pull request. Pull requests are never merged.
-
-Requests can only add new accounts, never change existing ones. Use a Claude account that is not already in the fleet: the cluster cannot tell from a token which account it belongs to, and two folders on one account share its usage limit.
-
-Only the cluster holds the key that decrypts a request.
+The token is encrypted with `cluster.pub.pem` and posted through [ntfy.sh](https://ntfy.sh), a public message relay; only the cluster holds the key that decrypts it. Requests can only add new accounts. Use a Claude account that is not already in the fleet: the cluster cannot tell from a token which account it belongs to.
