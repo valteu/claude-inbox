@@ -7,8 +7,7 @@
 # with `gh auth login`). The token is encrypted with the cluster's public key:
 # only the cluster can read it. With push access to valteu/claude-inbox the
 # request goes in directly; otherwise through a fork and a pull request, which
-# the cluster reads and closes (never merges). Only accounts listed in
-# allowed-users.txt are processed.
+# the cluster reads and closes (never merges).
 set -euo pipefail
 UPSTREAM=valteu/claude-inbox
 for c in claude openssl gh; do command -v "$c" >/dev/null || { echo "needs $c"; exit 1; }; done

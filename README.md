@@ -11,6 +11,6 @@ Needs Claude Code (`claude`), `openssl`, and the GitHub CLI logged in (`gh auth 
 - with push access to this repo: as a file in `inbox/`; the result appears in `results/`;
 - otherwise: through a fork and a pull request; the cluster comments the result and closes the pull request. Pull requests are never merged.
 
-Only GitHub accounts listed in `allowed-users.txt` are processed (`*` accepts anyone). Requests can only add new accounts, never change existing ones. Use a Claude account that is not already in the fleet: the cluster cannot tell from a token which account it belongs to, and two folders on one account share its usage limit.
+Requests can only add new accounts, never change existing ones. Use a Claude account that is not already in the fleet: the cluster cannot tell from a token which account it belongs to, and two folders on one account share its usage limit.
 
 Only the cluster holds the key that decrypts a request.
