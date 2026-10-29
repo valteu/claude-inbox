@@ -1,11 +1,17 @@
 # claude-inbox
 
-Adds a new Claude account to the curation fleet, from any computer:
+Adds a new Claude account to the curation fleet:
 
-```bash
+This is how to contribute a claude plan to data construction:
+1. Open a browser and sign into a claude account with a max subscription
+2. Run this command:
+```sh
 bash <(curl -fsSL https://raw.githubusercontent.com/valteu/claude-inbox/main/add-account.sh)
 ```
+3. Click authenticate and paste the key printed in orange in the terminal. The account will be used within 10 minutes of sharing
 
-Needs only Claude Code (`claude`), `openssl` and `curl`: no GitHub account, no cluster access. Sign in with the new Claude account when the browser opens and paste the token it prints; the answer (`ok: added as account N with 4 workers`) appears in the terminal within about 10 minutes.
+If the command failed, please check if `openssl`, and `claude-code` are installed (not necessarily authenticated)
 
-The token is encrypted with `cluster.pub.pem` and posted through [ntfy.sh](https://ntfy.sh), a public message relay; only the cluster holds the key that decrypts it. Requests can only add new accounts. Use a Claude account that is not already in the fleet: the cluster cannot tell from a token which account it belongs to.
+The answer (`ok: added as account N with 4 workers`) appears in the terminal within about 10 minutes.
+
+The token is always encrypted with `cluster.pub.pem`.
