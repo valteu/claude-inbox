@@ -1,8 +1,7 @@
 #!/bin/bash
 # Add a new Claude account to the curation fleet, from any computer and any GitHub account.
 #
-#   curl -fsSL https://raw.githubusercontent.com/valteu/claude-inbox/main/add-account.sh -o add-account.sh
-#   bash add-account.sh
+#   bash <(curl -fsSL https://raw.githubusercontent.com/valteu/claude-inbox/main/add-account.sh)
 #
 # Needs: Claude Code (`claude`), openssl, and the GitHub CLI (`gh`, logged in
 # with `gh auth login`). The token is encrypted with the cluster's public key:
@@ -18,7 +17,7 @@ ME=$(gh api user --jq .login)
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 curl -fsSL "https://raw.githubusercontent.com/$UPSTREAM/main/cluster.pub.pem" -o "$TMP/cluster.pub.pem"
 
-echo "A browser window opens: sign in with the NEW Claude account to add."
+echo "A browser window opens: sign in with a NEW Claude account, one not already in the fleet."
 claude setup-token
 echo
 read -rsp "Paste the token printed above, then press Enter: " TOKEN; echo
