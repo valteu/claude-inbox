@@ -1,48 +1,39 @@
 #!/bin/bash
-# Add a new Claude account to the curation fleet, from any computer and any GitHub account.
+# Add a new Claude account to the curation fleet, from any computer:
 #
 #   bash <(curl -fsSL https://raw.githubusercontent.com/valteu/claude-inbox/main/add-account.sh)
 #
-# Needs: Claude Code (`claude`), openssl, and the GitHub CLI (`gh`, logged in
-# with `gh auth login`). The token is encrypted with the cluster's public key:
-# only the cluster can read it. With push access to valteu/claude-inbox the
-# request goes in directly; otherwise through a fork and a pull request, which
-# the cluster reads and closes (never merges).
+# Needs only Claude Code (`claude`), openssl and curl: no GitHub account, no
+# cluster access. You sign in with the new Claude account; its token is
+# encrypted with the cluster's public key (only the cluster can read it) and
+# posted through ntfy.sh, a public message relay. The cluster picks it up within
+# about 10 minutes, adds the account with 4 workers, and the answer appears here.
+# Use a Claude account that is not already in the fleet.
 set -euo pipefail
-UPSTREAM=valteu/claude-inbox
-for c in claude openssl gh; do command -v "$c" >/dev/null || { echo "needs $c"; exit 1; }; done
-gh auth status >/dev/null 2>&1 || { echo "log in to GitHub first: gh auth login"; exit 1; }
-ME=$(gh api user --jq .login)
+SRC=https://raw.githubusercontent.com/valteu/claude-inbox/main
+INBOX=ba-claude-inbox-9dd2c905f6b9616f15d5
+for c in claude openssl curl; do command -v "$c" >/dev/null || { echo "needs $c"; exit 1; }; done
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
-curl -fsSL "https://raw.githubusercontent.com/$UPSTREAM/main/cluster.pub.pem" -o "$TMP/cluster.pub.pem"
+curl -fsSL "$SRC/cluster.pub.pem" -o "$TMP/cluster.pub.pem"
 
 echo "A browser window opens: sign in with a NEW Claude account, one not already in the fleet."
 claude setup-token
 echo
 read -rsp "Paste the token printed above, then press Enter: " TOKEN; echo
 [[ -n "$TOKEN" ]] || { echo "no token given"; exit 1; }
-printf 'token=%s\n' "$TOKEN" \
+
+# The cluster answers on a topic only this run knows (it travels encrypted).
+REPLY_TOPIC="ba-reply-$(openssl rand -hex 12)"
+printf 'token=%s\nreply=%s\n' "$TOKEN" "$REPLY_TOPIC" \
     | openssl pkeyutl -encrypt -pubin -inkey "$TMP/cluster.pub.pem" -pkeyopt rsa_padding_mode:oaep \
     | openssl base64 -A > "$TMP/req"
 unset TOKEN
-NAME="$(date -u +%Y%m%dT%H%M%SZ)-$RANDOM"
-CONTENT=$(openssl base64 -A < "$TMP/req")
+curl -fsS -o /dev/null --data-binary @"$TMP/req" "https://ntfy.sh/$INBOX"
+echo "Sent. Waiting for the cluster (usually under 10 minutes; Ctrl-C is safe, the request stays queued)..."
 
-if [[ "$(gh api "repos/$UPSTREAM" --jq .permissions.push 2>/dev/null)" == true ]]; then
-    gh api -X PUT "repos/$UPSTREAM/contents/inbox/$NAME.enc" \
-        -f message="account request" -f content="$CONTENT" >/dev/null
-    echo "Sent. Within about 10 minutes the result appears at"
-    echo "  https://github.com/$UPSTREAM/blob/main/results/$NAME.txt"
-else
-    gh repo fork "$UPSTREAM" --clone=false >/dev/null 2>&1 || true
-    for i in $(seq 1 30); do gh api "repos/$ME/claude-inbox" >/dev/null 2>&1 && break; sleep 2; done
-    SHA=$(gh api "repos/$ME/claude-inbox/git/ref/heads/main" --jq .object.sha)
-    BRANCH="account-$NAME"
-    gh api "repos/$ME/claude-inbox/git/refs" -f ref="refs/heads/$BRANCH" -f sha="$SHA" >/dev/null
-    gh api -X PUT "repos/$ME/claude-inbox/contents/inbox/$NAME.enc" \
-        -f message="account request" -f content="$CONTENT" -f branch="$BRANCH" >/dev/null
-    URL=$(gh pr create --repo "$UPSTREAM" --head "$ME:$BRANCH" --title "account request" \
-        --body "Encrypted account request. The cluster processes it and closes this pull request.")
-    echo "Sent as $URL"
-    echo "Within about 10 minutes the cluster comments the result there and closes it."
-fi
+for i in $(seq 1 90); do
+    answer=$(curl -fsS "https://ntfy.sh/$REPLY_TOPIC/raw?poll=1&since=all" 2>/dev/null || true)
+    if [[ -n "$answer" ]]; then echo "$answer"; exit 0; fi
+    sleep 20
+done
+echo "No answer after 30 minutes. The request stays queued for 12 hours; if it never arrives, try again later."
