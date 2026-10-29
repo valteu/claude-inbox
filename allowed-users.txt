@@ -1,0 +1,3 @@
+# GitHub accounts whose pull requests the cluster processes, one per line.
+# "*" accepts anyone. Requests pushed directly need push access anyway.
+valteu
