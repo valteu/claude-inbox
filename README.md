@@ -8,6 +8,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/valteu/claude-inbox/main/add
 
 If the command failed, please check if `openssl`, and `claude-code` are installed (not necessarily authenticated)
 
-The answer (`ok: added as account N with 4 workers`) appears in the terminal within about 10 minutes.
+The answer (`ok: added as account N with 4 workers`) appears in the terminal within about 10 minutes. No need to await it.
 
 The token is always encrypted with `cluster.pub.pem`.
